@@ -1,5 +1,7 @@
 using Chat.ServiceDefaults;
 using SrvBack.Components;
+using SrvBack.Hubs;
+using SrvBack.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +10,18 @@ builder.AddServiceDefaults();
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddSingleton<IbgeService>();
+
+builder.Services.AddCors(options => {
+    options.AddDefaultPolicy(policy => {
+        policy.WithOrigins("https://localhost:7162")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 
 var app = builder.Build();
 
@@ -29,5 +43,9 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+app.UseCors();
+
+app.MapHub<ChatHub>("/chathub");
 
 app.Run();

@@ -11,7 +11,7 @@ namespace AppFront.Services
         public ChatHubService(NavigationManager navigationManager)
         {
             HubConnection = new HubConnectionBuilder()
-                .WithUrl("https://192.168.1.6:7139/chathub")
+                .WithUrl("https://localhost:7139/chathub")
                 .WithAutomaticReconnect()
                 .Build();
         }
