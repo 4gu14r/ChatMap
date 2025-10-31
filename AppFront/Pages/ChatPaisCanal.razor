@@ -1,0 +1,103 @@
+﻿@page "/{canal}"
+@using Microsoft.AspNetCore.SignalR.Client
+@using SharedModels
+@inject AppFront.Services.ChatHubService ChatService
+@inject NavigationManager NavigationManager
+
+@if (carregando)
+{
+    <p>Carregando canal...</p>
+}
+else if (!canalValido)
+{
+    <p>Canal inválido. Voltando para a lista...</p>
+}
+else
+{
+    <div style="border:1px solid red; padding:5px; margin:10px;">
+        <p><b>Debug:</b> @mensagens.Count mensagens</p>
+        <pre>@System.Text.Json.JsonSerializer.Serialize(mensagens)</pre>
+    </div>
+
+    <div class="chat-panel">
+        <h3>Chat do canal @canalDisplay</h3>
+
+        <div class="chat-panel-texto">
+            <ul>
+                @foreach (var msg in mensagens)
+                {
+                    <li><b>@msg.Usuario:</b> @msg.Texto</li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    <div class="chat-inputs">
+        <input @bind="mensagem" placeholder="Digite sua mensagem..." />
+        <button @onclick="EnviarMensagem">Enviar</button>
+        <button @onclick="SairDoCanal">Sair</button>
+    </div>
+}
+
+@code {
+    [Parameter] public string canal { get; set; } = "";
+
+    private string canalDisplay => char.ToUpper(canal[0]) + canal.Substring(1);
+
+    private List<string> canais = new();
+    private List<Mensagem> mensagens = new();
+    private string mensagem = "";
+    private bool canalValido = false;
+    private bool carregando = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ChatService.StartAsync();
+        canais = await ChatService.GetCanaisDisponiveis();
+
+        canalValido = canais.Any(c => c.Equals(canal, StringComparison.OrdinalIgnoreCase));
+        carregando = false;
+
+        if (!canalValido)
+        {
+            await Task.Delay(1000);
+            NavigationManager.NavigateTo("/", true);
+            return;
+        }
+
+        // 1️⃣ Escuta mensagens novas em tempo real
+        ChatService.HubConnection.On<Mensagem>("ReceiveMessage", msg =>
+        {
+            mensagens.Add(msg);
+            InvokeAsync(StateHasChanged);
+        });
+
+        // 2️⃣ Entra no canal (mensagem do sistema é adicionada ao histórico no servidor)
+        await ChatService.EntrarNoCanal(canal);
+
+        // 3️⃣ Busca histórico atualizado depois de entrar
+        var historico = await ChatService.GetMensagensDoCanal(canal);
+        mensagens = historico.ToList();
+
+    }
+
+    private async Task EnviarMensagem()
+    {
+        if (!string.IsNullOrWhiteSpace(mensagem))
+        {
+            await ChatService.EnviarMensagem(canal, "Você", mensagem);
+            mensagem = "";
+        }
+    }
+
+    private async Task SairDoCanal()
+    {
+        if (canalValido)
+        {
+            await ChatService.SairDoCanal(canal);
+        }
+
+        mensagens.Clear();
+        NavigationManager.NavigateTo("/", true);
+    }
+}

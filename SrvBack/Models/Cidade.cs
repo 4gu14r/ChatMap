@@ -2,8 +2,8 @@
 {
     public class Cidade
     {
-        public int Id { get; set; }
-        public string Nome { get; set; }
-        public int EstadoId { get; set; }
+        public String? Id { get; set; }
+        public string? Nome { get; set; }
+        public String? EstadoId { get; set; }
     }
 }

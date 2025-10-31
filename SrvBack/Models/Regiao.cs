@@ -2,9 +2,9 @@
 {
     public class Regiao
     {
-        public int Id { get; set; }
-        public string Nome { get; set; }
-        public string Sigla { get; set; }
-        public int PaisId { get; set; }
+        public String? Id { get; set; }
+        public string? Nome { get; set; }
+        public string? Sigla { get; set; }
+        public String? PaisId { get; set; }
     }
 }
