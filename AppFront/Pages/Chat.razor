@@ -1,0 +1,23 @@
+﻿@page "/"
+@inject AppFront.Services.ChatHubService ChatService
+
+<h3>Escolha o canal</h3>
+
+<ul>
+    @foreach (var canal in canais)
+    {
+        <li>
+            <NavLink href="@($"/{canal}")">@canal</NavLink>
+        </li>
+    }
+</ul>
+
+@code {
+    private List<string> canais = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ChatService.StartAsync();
+        canais = await ChatService.GetCanaisDisponiveis();
+    }
+}

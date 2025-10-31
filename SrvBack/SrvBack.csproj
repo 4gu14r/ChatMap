@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Chat.ServiceDefaults\Chat.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\SharedModels\SharedModels.csproj" />
   </ItemGroup>
 
 </Project>
