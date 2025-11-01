@@ -13,21 +13,26 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddSingleton<IbgeService>();
 
-builder.Services.AddCors(options => {
-    options.AddDefaultPolicy(policy => {
-        policy.WithOrigins("https://localhost:7162")
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("DynamicCors", policy =>
+    {
+        policy
+            .SetIsOriginAllowed(_ => builder.Environment.IsDevelopment())
             .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
+            .AllowAnyMethod();
     });
 });
+
+builder.Services.AddSignalR();
+
 
 
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline. 
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
@@ -35,16 +40,13 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
-
-
 app.UseAntiforgery();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-app.UseCors();
+app.UseCors("DynamicCors");
 
 app.MapHub<ChatHub>("/chathub");
 
