@@ -10,11 +10,33 @@ namespace AppFront.Services
 
         public ChatHubService(NavigationManager navigationManager)
         {
+            var baseUri = navigationManager.BaseUri;
+
+            // Detecta se está rodando localmente
+            var uri = new Uri(baseUri);
+            string host = uri.Host;
+
+            string hubUrl;
+
+            if (host == "localhost" || host == "127.0.0.1")
+            {
+                // Ambiente local (PC)
+                hubUrl = "http://localhost:5050/chathub";
+            }
+            else
+            {
+                Console.WriteLine(host);
+                // Ambiente de rede (ex: celular acessando IP da máquina)
+                hubUrl = $"http://{host}:5050/chathub";
+            }
+
             HubConnection = new HubConnectionBuilder()
-                .WithUrl("https://localhost:7139/chathub")
+                .WithUrl(hubUrl)
                 .WithAutomaticReconnect()
                 .Build();
         }
+
+
 
         // Inicia a conexão se ainda não estiver conectada
         public async Task StartAsync()
